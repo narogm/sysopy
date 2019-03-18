@@ -37,7 +37,7 @@ int sys_sort(char* file_name, int amount, int size){
 
     int fd = open(file_name,O_RDWR);
     if(fd == -1){
-        printf(stderr, "Unable to open file\n");
+        fprintf(stderr, "Unable to open file\n");
         return -1;
     }
 
@@ -77,7 +77,7 @@ int sys_sort(char* file_name, int amount, int size){
 int lib_sort(char* file_name, int amount, int size){
     FILE *file = fopen(file_name,"r+");
     if(file == NULL){
-        printf(stderr, "Unable to open file\n");
+        fprintf(stderr, "Unable to open file\n");
         return -1;
     }
     char *min_record = malloc(sizeof(char) * size);
@@ -107,7 +107,7 @@ int lib_sort(char* file_name, int amount, int size){
         fwrite(min_record, sizeof(char), size, file);
     }
 
-    close(file);
+    fclose(file);
     free(min_record);
     free(curr_record);
 
@@ -126,7 +126,7 @@ int sort(char** args, int i){
     else if(strcmp(type, "lib") == 0){
         return lib_sort(file_name, amount, size);
     } else{
-        printf(stderr, "Unknown way to sort file\n");
+        fprintf(stderr, "Unknown way to sort file\n");
         return -1;
     }
 }
@@ -139,8 +139,8 @@ int sys_copy(char* in_file, char* out_file, int amount, int size){
         return -1;
     }
     char *record = malloc(sizeof(char)*size);
-    for(int i=0; i < amount; i++){
-        read(in, record, size);
+    ssize_t readed;
+    while(amount-- && (readed = read(in, record, size)) != 0){
         write(out, record, size);
     }
     close(in);
@@ -150,7 +150,21 @@ int sys_copy(char* in_file, char* out_file, int amount, int size){
 }
 
 int lib_copy(char* in_file, char* out_file, int amount, int size){
+    FILE *in = fopen(in_file, "r");
+    FILE *out = fopen(out_file, "w");
+    if(in == NULL || out == NULL){
+        fprintf(stderr, "Unable to open file while copying");
+        return -1;
+    }
+    char *record = malloc(sizeof(char)*size);
+    ssize_t readed;
+    while(amount-- && (readed = fread(record, sizeof(char), size, in) != 0)){
+        fwrite(record, sizeof(char), size, out);
+    }
 
+    fclose(in);
+    fclose(out);
+    free(record);
     return 0;
 }
 
@@ -167,7 +181,7 @@ int copy(char** args, int i){
     else if(strcmp(type, "lib") == 0){
         return lib_copy(in_file, out_file, amount, size);
     } else{
-        printf(stderr, "Unknown way to sort file\n");
+        fprintf(stderr, "Unknown way to sort file\n");
         return -1;
     }
 }
@@ -197,13 +211,12 @@ int exec_operation(int (*operation)(char**,int), char** args, int i, const char*
     getrusage(RUSAGE_SELF,&e);
     gettimeofday(&end,NULL);
 
-    //double real_time = get_time_difference(start,end);
-    //double user_time = get_time_difference(s.ru_utime, e.ru_utime);
-    //double sys_time = get_time_difference(s.ru_stime,e.ru_stime);
+    double user_time = get_time_difference(s.ru_utime, e.ru_utime);
+    double sys_time = get_time_difference(s.ru_stime,e.ru_stime);
 
-    //FILE * file = fopen("raport2.txt","a");
-    //fprintf(file,"Operation %s:\n real time: %f\n user time: %f\n system time: %f\n", operation_name, real_time, user_time, sys_time);
-    //fclose(file);
+    FILE * file = fopen("wynik.txt","a");
+    fprintf(file,"Operation %s:\n user time: %f\n system time: %f\n", operation_name, user_time, sys_time);
+    fclose(file);
     return 0;
 }
 
