@@ -75,6 +75,41 @@ int sys_sort(char* file_name, int amount, int size){
 }
 
 int lib_sort(char* file_name, int amount, int size){
+    FILE *file = fopen(file_name,"r+");
+    if(file == NULL){
+        printf(stderr, "Unable to open file\n");
+        return -1;
+    }
+    char *min_record = malloc(sizeof(char) * size);
+    char *curr_record = malloc(sizeof(char) * size);
+
+    for(int cur=0; cur < amount; cur++){
+        fseek(file, sizeof(char)*size*cur, SEEK_SET);
+        fread(min_record, sizeof(char), size, file);
+        int min_index = cur;
+
+        for(int index=cur+1; index<amount; index++){
+            fread(curr_record, sizeof(char), 1, file);
+
+            if(curr_record[0] < min_record[0]){
+                min_index = index;
+                min_record[0] = curr_record[0];
+                fread(min_record + 1, sizeof(char), size-1 , file);
+            } else{
+                fseek(file, sizeof(char)*(size -1), SEEK_CUR);
+            }
+        }
+        fseek(file, sizeof(char)*cur*size, SEEK_SET);
+        fread(curr_record, sizeof(char), size, file);
+        fseek(file, sizeof(char)*(min_index - cur -1)*size, SEEK_CUR);
+        fwrite(curr_record, sizeof(char), size,file);
+        fseek(file, sizeof(char)*cur*size, SEEK_SET);
+        fwrite(min_record, sizeof(char), size, file);
+    }
+
+    close(file);
+    free(min_record);
+    free(curr_record);
 
     return 0;
 }
@@ -96,14 +131,45 @@ int sort(char** args, int i){
     }
 }
 
-int copy(char** args, int i){
-    //char* in_file = args[i];
-    //char* out_file = args[i+1];
-    //int amount = atoi(args[i+2]);
-    //int size = atoi(args[i+3]);
-    //char* type = args[i+4];
+int sys_copy(char* in_file, char* out_file, int amount, int size){
+    int in = open(in_file,O_RDONLY);
+    int out = open(out_file,O_WRONLY|O_CREAT, S_IRWXU|S_IRGRP|S_IROTH);
+    if(in == -1 || out == -1){
+        fprintf(stderr, "Unable to open file while copying\n");
+        return -1;
+    }
+    char *record = malloc(sizeof(char)*size);
+    for(int i=0; i < amount; i++){
+        read(in, record, size);
+        write(out, record, size);
+    }
+    close(in);
+    close(out);
+    free(record);
+    return 0;
+}
+
+int lib_copy(char* in_file, char* out_file, int amount, int size){
 
     return 0;
+}
+
+int copy(char** args, int i){
+    char* in_file = args[i];
+    char* out_file = args[i+1];
+    int amount = atoi(args[i+2]);
+    int size = atoi(args[i+3]);
+    char* type = args[i+4];
+
+    if(strcmp(type, "sys") == 0){
+        return sys_copy(in_file, out_file, amount, size);
+    }
+    else if(strcmp(type, "lib") == 0){
+        return lib_copy(in_file, out_file, amount, size);
+    } else{
+        printf(stderr, "Unknown way to sort file\n");
+        return -1;
+    }
 }
 
 
