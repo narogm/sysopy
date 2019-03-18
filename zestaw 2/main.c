@@ -4,6 +4,8 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <time.h>
+#include <fcntl.h>
+#include <zconf.h>
 
 int generate(char** args, int i){
     char* file_name = args[i];
@@ -23,6 +25,7 @@ int generate(char** args, int i){
         for(int i=0; i<size; i++){
             record[i] = (char) (rand()%25 + 97);
         }
+        record[size-1] = '\n';
         fwrite(record,1,size,file);
     }
     fclose(file);
@@ -30,13 +33,67 @@ int generate(char** args, int i){
     return 0;
 }
 
-int sort(char** args, int i){
-    //char* file_name = args[i];
-    //int amount = atoi(args[i+1]);
-    //int size = atoi(args[i+2]);
-    //char* type = args[i+3];
+int sys_sort(char* file_name, int amount, int size){
+
+    int fd = open(file_name,O_RDWR);
+    if(fd == -1){
+        printf(stderr, "Unable to open file\n");
+        return -1;
+    }
+
+    char *min_record = malloc(sizeof(char) * size);
+    char *curr_record = malloc(sizeof(char) * size);
+
+    for(int cur=0; cur < amount; cur++){
+        lseek(fd, size*cur, SEEK_SET);
+        read(fd, min_record, size);
+        int min_index = cur;
+
+        for(int index=cur+1; index<amount; index++){
+            read(fd, curr_record, 1);
+
+            if(curr_record[0] < min_record[0]){
+                min_index = index;
+                min_record[0] = curr_record[0];
+                read(fd, min_record + 1, size-1);
+            } else{
+                lseek(fd, size -1, SEEK_CUR);
+            }
+        }
+        lseek(fd, cur*size, SEEK_SET);
+        read(fd, curr_record, size);
+        lseek(fd, (min_index - cur -1)*size, SEEK_CUR);
+        write(fd, curr_record, size);
+        lseek(fd, cur*size, SEEK_SET);
+        write(fd, min_record, size);
+    }
+
+    close(fd);
+    free(min_record);
+    free(curr_record);
+    return 0;
+}
+
+int lib_sort(char* file_name, int amount, int size){
 
     return 0;
+}
+
+int sort(char** args, int i){
+    char* file_name = args[i];
+    int amount = atoi(args[i+1]);
+    int size = atoi(args[i+2]);
+    char* type = args[i+3];
+
+    if(strcmp(type, "sys") == 0){
+        return sys_sort(file_name, amount, size);
+    }
+    else if(strcmp(type, "lib") == 0){
+        return lib_sort(file_name, amount, size);
+    } else{
+        printf(stderr, "Unknown way to sort file\n");
+        return -1;
+    }
 }
 
 int copy(char** args, int i){
@@ -116,7 +173,6 @@ int main(int argc, char** argv) {
         }
 
     }
-
 
 
     return 0;
