@@ -186,8 +186,6 @@ int copy(char** args, int i){
     }
 }
 
-
-
 void check_number_of_args(int argc, int start, int amount){
     if(start+amount > argc){
         fprintf(stderr, "Incorrect amount of arguments\n");
@@ -252,7 +250,5 @@ int main(int argc, char** argv) {
         }
 
     }
-
-
     return 0;
 }
