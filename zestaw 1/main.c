@@ -27,10 +27,13 @@ int create(char** args, int index){
         return -1;
     }
     char* size = args[index];
+    printf("%s\n",size);
     if(!is_integer(size))
         return -1;
     TABLE_SIZE = atoi(size);
+    printf("%i\n",TABLE_SIZE);
     table = create_table(TABLE_SIZE);
+    //printf("%s <--------------\n",table[0]);
     return 0;
 }
 
@@ -38,7 +41,7 @@ int search_directory(char** args, int index){
     char* dir = args[index];
     char* file_name = args[index+1];
     char* tmp_name = args[index+2];
-    sys_file file = get_current_location();
+    sys_file file;// = get_current_location();
     set_location(&file, dir);
     set_name(&file, file_name);
     return find_file(&file,tmp_name);
@@ -94,6 +97,9 @@ int exec_operation(int (*operation)(char**,int), char** args, int i, const char*
 
 int main(int argc, char** argv) {
 
+    char* record = calloc(10, sizeof(char));
+    printf("%s\n",record);
+
 #ifdef DLL
     void *handle = dlopen("library.so", RTLD_LAZY);
     if(!handle){
@@ -102,7 +108,7 @@ int main(int argc, char** argv) {
     }
 
 
-    sys_file (*get_current_location)();
+    //sys_file (*get_current_location)();
     void (*set_location)(sys_file * file, const char* location);
     void (*set_name)(sys_file * file, const char* name);
 
@@ -112,7 +118,7 @@ int main(int argc, char** argv) {
     void (*remove_file)(char** file_table, int index);
     void (*clear_table)(char** file_table, int size);
 
-    get_current_location = dlsym(handle,"get_current_location");
+   // get_current_location = dlsym(handle,"get_current_location");
     set_location = dlsym(handle,"set_location");
     set_name = dlsym(handle, "set_name");
     create_table = dlsym(handle, "create_table");

@@ -8,7 +8,7 @@ typedef struct file{
     char location[512];
 } sys_file;
 
-sys_file get_current_location();
+//sys_file get_current_location();
 void set_location(sys_file * file, const char* location);
 void set_name(sys_file * file, const char* name);
 
