@@ -95,11 +95,13 @@ void findStat(char* path){
 
 time_t getTime(char* date){
     struct tm timeTM;
+    memset(&timeTM, 0, sizeof(struct tm));
     if(strptime(date, "%d-%m-%Y", &timeTM) == NULL){
         fprintf(stderr, "Incorrect format of date\n");
         return 1;
     }
-    return mktime(&timeTM);
+    time_t time = mktime(&timeTM);
+    return time;
 }
 
 int main(int argc, char** argv) {
@@ -114,6 +116,7 @@ int main(int argc, char** argv) {
     }
     global_comparison_sign = argv[2];
     global_date = getTime(argv[3]);
+    printf("%lld", global_date);
     char* type = argv[4];
     if(strcmp(type,"stat") == 0){
         findStat(path);
@@ -125,5 +128,6 @@ int main(int argc, char** argv) {
         fprintf(stderr,"Incorrect type\n");
         return 1;
     }
+    free(path);
     return 0;
 }

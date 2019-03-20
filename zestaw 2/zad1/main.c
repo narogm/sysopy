@@ -37,6 +37,7 @@ int check_file_size(char* file_name, int amount, int size){
     FILE *file = fopen(file_name, "r");
     fseek(file,0L,SEEK_END);
     long file_size = ftell(file);
+    fclose(file);
     if(file_size < amount * size){
         fprintf(stderr, "File is to small to sort given amount and size\n");
         return 1;
@@ -209,6 +210,7 @@ int copy(char** args, int i){
         return lib_copy(in_file, out_file, amount, size);
     } else{
         fprintf(stderr, "Unknown way to sort file\n");
+        printf("%s\n\n",type);
         return -1;
     }
 }
