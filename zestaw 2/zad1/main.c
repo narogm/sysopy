@@ -33,8 +33,23 @@ int generate(char** args, int i){
     return 0;
 }
 
+int check_file_size(char* file_name, int amount, int size){
+    FILE *file = fopen(file_name, "r");
+    fseek(file,0L,SEEK_END);
+    long file_size = ftell(file);
+    if(file_size < amount * size){
+        fprintf(stderr, "File is to small to sort given amount and size\n");
+        return 1;
+    }
+    return 0;
+}
+
 int sys_sort(char* file_name, int amount, int size){
 
+    int err;
+    if((err = check_file_size(file_name, amount, size))){
+        return 1;
+    }
     int fd = open(file_name,O_RDWR);
     if(fd == -1){
         fprintf(stderr, "Unable to open file\n");
@@ -75,6 +90,10 @@ int sys_sort(char* file_name, int amount, int size){
 }
 
 int lib_sort(char* file_name, int amount, int size){
+    int err;
+    if((err = check_file_size(file_name, amount, size))){
+        return 1;
+    }
     FILE *file = fopen(file_name,"r+");
     if(file == NULL){
         fprintf(stderr, "Unable to open file\n");
@@ -140,7 +159,11 @@ int sys_copy(char* in_file, char* out_file, int amount, int size){
     }
     char *record = malloc(sizeof(char)*size);
     ssize_t readed;
-    while(amount-- && (readed = read(in, record, size)) != 0){
+    while(amount--){
+        if((readed = read(in, record, size)) == 0){
+            fprintf(stderr, "File to copy is too small\n");
+            return -1;
+        }
         write(out, record, size);
     }
     close(in);
@@ -158,7 +181,11 @@ int lib_copy(char* in_file, char* out_file, int amount, int size){
     }
     char *record = malloc(sizeof(char)*size);
     ssize_t readed;
-    while(amount-- && (readed = fread(record, sizeof(char), size, in) != 0)){
+    while(amount--){
+        if((readed = fread(record, sizeof(char), size, in)) == 0){
+            fprintf(stderr, "File to copy is too small\n");
+            return -1;
+        }
         fwrite(record, sizeof(char), size, out);
     }
 
