@@ -5,13 +5,6 @@
 
 const char* tmp_location = "/tmp";
 
-//sys_file get_current_location(){
-//    sys_file file;
-//    strcpy(file.location, ".");
-//    strcpy(file.name, "");
-//    return file;
-//}
-
 void set_location(sys_file * file, const char* location){
     strcpy(file -> location, location);
 }
@@ -21,8 +14,7 @@ void set_name(sys_file * file, const char* name){
 }
 
 char** create_table(int size){
-    return malloc(sizeof(char*)*size);
-    //return (char**) calloc(size, sizeof(char*));
+    return (char**) calloc((size_t) size, sizeof(char*));
 }
 
 int find_file(sys_file * file, const char *tmp_name){
@@ -36,7 +28,6 @@ int get_index(char** table, int table_size);
 char* get_file_content(const char* file_name);
 
 int insert_to_table(char** table, int table_size, const char* file_name){
-    //printf("elo\n");
     if(table == NULL){
         fprintf(stderr, "Uninitialized table\n");
         return -1;
@@ -65,8 +56,6 @@ void clear_table(char** file_table, int size){
 }
 
 int get_index(char** table, int table_size){
-    //printf("%i",table_size);
-    printf("siema\n");
     for(int i=0; i<table_size; i++){
         if(table[i] == NULL) return i;
     }

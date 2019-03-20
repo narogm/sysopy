@@ -15,7 +15,7 @@ shared: main.c library.so
 	$(CC) $(CFLAGS) $(OFLAG) -o main main.c -Wl,-rpath=. -L. library.so 
 
 dynamic: main.c library.so
-	$(CC) $(CFLAGS) $(OFLAG) -o main main.c -Wl,-rpath=. -L. -ldl -D DLL library.so
+	$(CC) $(CFLAGS) $(OFLAG) -o main main.c -g -Wl,-rpath=. -L. -ldl -D DLL library.so
 
 main.o: main.c
 	$(CC) $(CFLAGS) $(OFLAG) -c main.c

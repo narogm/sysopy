@@ -1,14 +1,11 @@
 #ifndef LIBRARY_H
 #define LIBRARY_H
 
-#include <form.h>
-
 typedef struct file{
     char name[64];
     char location[512];
 } sys_file;
 
-//sys_file get_current_location();
 void set_location(sys_file * file, const char* location);
 void set_name(sys_file * file, const char* name);
 
