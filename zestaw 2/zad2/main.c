@@ -6,6 +6,7 @@
 #include <memory.h>
 #include <ftw.h>
 #include <dirent.h>
+#include <fcntl.h>
 
 char* global_comparison_sign;
 time_t global_date;
@@ -15,21 +16,20 @@ void getFileAttributes(const char* path, const struct stat *stat){
 
     if (S_ISREG(stat->st_mode))
         printf("file\n");
-    else if (S_ISDIR(stat->st_mode))
+    else if(S_ISDIR(stat->st_mode))
         printf("dir\n");
-    else if (S_ISCHR(stat->st_mode))
+    else if(S_ISCHR(stat->st_mode))
         printf("char dev\n");
-    else if (S_ISBLK(stat->st_mode))
+    else if(S_ISBLK(stat->st_mode))
         printf("block dev\n");
-    else if (S_ISFIFO(stat->st_mode))
+    else if(S_ISFIFO(stat->st_mode))
         printf("fifo\n");
-    else if (S_ISLNK(stat->st_mode))
+    else if(S_ISLNK(stat->st_mode))
         printf("slink\n");
-    else if (S_ISSOCK(stat->st_mode))
+    else if(S_ISSOCK(stat->st_mode))
         printf("socket\n");
-    else {
+    else
         fprintf(stderr,"unknown format of file\n");
-    }
 
     printf("size: %ld\n",stat->st_size);
     char tmp[20];
@@ -69,7 +69,28 @@ int showFileInfo(const char* path, const struct stat *stat, int typeflag, struct
 }
 
 void findStat(char* path){
-    DIR *directory
+    DIR *directory = opendir(path);
+    struct dirent *file;
+    struct stat stat;
+    //printf("elo\n");
+
+    while( (file = readdir(directory))){
+        if(strcmp(file->d_name, ".") == 0 || strcmp(file->d_name,"..") == 0)
+            continue;
+        char next_path[256];
+        strcpy(next_path,path);
+        strcat(next_path,"/");
+        strcat(next_path,file->d_name);
+        fstatat(dirfd(directory), file->d_name, &stat, AT_SYMLINK_NOFOLLOW);
+        if(stat.st_mode & S_IFDIR){
+            findStat(next_path);
+        }
+        if(compareDate(stat.st_mtime,global_date,global_comparison_sign)){
+            getFileAttributes(path, &stat);
+        }
+
+    }
+    closedir(directory);
 }
 
 time_t getTime(char* date){
@@ -91,12 +112,11 @@ int main(int argc, char** argv) {
         fprintf(stderr,"Incorrect path\n");
         return 1;
     }
-    printf("%s",path);
     global_comparison_sign = argv[2];
     global_date = getTime(argv[3]);
     char* type = argv[4];
     if(strcmp(type,"stat") == 0){
-        findStat();
+        findStat(path);
     }
     else if(strcmp(type,"nftw") == 0){
         nftw(path, showFileInfo, 100, FTW_PHYS);
