@@ -1,12 +1,27 @@
 CC = gcc
 CFLAGS = -Wall
 OFLAG = -O0
+export OFLAG
 export LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH
 
-all: static
+all: test
+
+OFLAGS = 1 2 3 s
+
+define make-Otest
+	$(eval export OFLAG=-O$(1))
+	@make --no-print-directory clean
+	@make --no-print-directory OFLAG=$(OFLAG) $(2)
+	@make --no-print-directory test
+endef
+
+Otest:
+	$(foreach i, $(OFLAGS), $(call make-Otest,$(i),static))
+	$(foreach i, $(OFLAGS), $(call make-Otest,$(i),shared))
+	$(foreach i, $(OFLAGS), $(call make-Otest,$(i),dynamic))
 
 test: 
-	./main create_table 10 search_directory /tmp .c c_result search_directory /tmp example result remove_block 0
+	./main create_table 100 search_directory /usr main main_res search_directory /usr .c c_res remove_block 1 search_directory /usr .cpp cpp_res remove_block 2
 
 static: main.o library.o
 	$(CC) $(CFLAGS) $(OFLAG) -o main main.o library.o
@@ -30,4 +45,4 @@ library.a: library.o
 	ar csr library.a library.o
 
 clean:
-	rm -f *.o *.so main
+	rm -f *.o *.so *.a main

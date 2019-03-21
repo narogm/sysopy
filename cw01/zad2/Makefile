@@ -3,7 +3,12 @@ CFLAGS = -Wall
 OFLAG = -O0
 export LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH
 
-all: static
+all: test
+
+test:
+	@make --no-print-directory clean
+	@make --no-print-directory static
+	./main create_table 100 search_directory /usr main main_res search_directory /usr .c c_res remove_block 1 search_directory /usr .cpp cpp_res remove_block 2
 
 
 static: main.o library.o
@@ -25,4 +30,4 @@ library.a: library.o
 	ar csr library.a library.o
 
 clean:
-	rm -f *.o *.so main
+	rm -f *.o *.so *.a main

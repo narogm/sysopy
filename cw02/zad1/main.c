@@ -26,7 +26,7 @@ int generate(char** args, int i){
             record[i] = (char) (rand()%25 + 97);
         }
         record[size-1] = '\n';
-        fwrite(record,1,size,file);
+        fwrite(record,size,1,file);
     }
     fclose(file);
     free(record);
@@ -76,10 +76,10 @@ int sys_sort(char* file_name, int amount, int size){
         }
         lseek(fd, cur*size, SEEK_SET);
         read(fd, curr_record, size);
-        lseek(fd, (min_index - cur -1)*size, SEEK_CUR);
-        write(fd, curr_record, size);
         lseek(fd, cur*size, SEEK_SET);
         write(fd, min_record, size);
+        lseek(fd, min_index*size, SEEK_SET);
+        write(fd, curr_record, size);
     }
 
     close(fd);
@@ -118,10 +118,10 @@ int lib_sort(char* file_name, int amount, int size){
         }
         fseek(file, sizeof(char)*cur*size, SEEK_SET);
         fread(curr_record, sizeof(char), size, file);
-        fseek(file, sizeof(char)*(min_index - cur -1)*size, SEEK_CUR);
-        fwrite(curr_record, sizeof(char), size,file);
         fseek(file, sizeof(char)*cur*size, SEEK_SET);
         fwrite(min_record, sizeof(char), size, file);
+        fseek(file, sizeof(char)*min_index*size, SEEK_SET);
+        fwrite(curr_record, sizeof(char), size,file);
     }
 
     fclose(file);
