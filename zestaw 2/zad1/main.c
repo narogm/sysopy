@@ -46,9 +46,7 @@ int check_file_size(char* file_name, int amount, int size){
 }
 
 int sys_sort(char* file_name, int amount, int size){
-
-    int err;
-    if((err = check_file_size(file_name, amount, size))){
+    if(check_file_size(file_name, amount, size)){
         return 1;
     }
     int fd = open(file_name,O_RDWR);
@@ -91,8 +89,7 @@ int sys_sort(char* file_name, int amount, int size){
 }
 
 int lib_sort(char* file_name, int amount, int size){
-    int err;
-    if((err = check_file_size(file_name, amount, size))){
+    if(check_file_size(file_name, amount, size)){
         return 1;
     }
     FILE *file = fopen(file_name,"r+");
@@ -159,9 +156,8 @@ int sys_copy(char* in_file, char* out_file, int amount, int size){
         return -1;
     }
     char *record = malloc(sizeof(char)*size);
-    ssize_t readed;
     while(amount--){
-        if((readed = read(in, record, size)) == 0){
+        if(read(in, record, size) == 0){
             fprintf(stderr, "File to copy is too small\n");
             return -1;
         }
@@ -181,9 +177,8 @@ int lib_copy(char* in_file, char* out_file, int amount, int size){
         return -1;
     }
     char *record = malloc(sizeof(char)*size);
-    ssize_t readed;
     while(amount--){
-        if((readed = fread(record, sizeof(char), size, in)) == 0){
+        if(fread(record, sizeof(char), size, in) == 0){
             fprintf(stderr, "File to copy is too small\n");
             return -1;
         }
@@ -241,8 +236,8 @@ int exec_operation(int (*operation)(char**,int), char** args, int i, const char*
     double user_time = get_time_difference(s.ru_utime, e.ru_utime);
     double sys_time = get_time_difference(s.ru_stime,e.ru_stime);
 
-    FILE * file = fopen("wynik.txt","a");
-    fprintf(file,"Operation %s:\n user time: %f\n system time: %f\n", operation_name, user_time, sys_time);
+    FILE * file = fopen("wyniki.txt","a");
+    fprintf(file,"Operation %s:\n user time: %f\n system time: %f\n\n", operation_name, user_time, sys_time);
     fclose(file);
     return 0;
 }
@@ -263,15 +258,25 @@ int main(int argc, char** argv) {
         }
         else if(strcmp(operation,"sort") == 0){
             check_number_of_args(argc,i,5);
-            if((err = exec_operation(sort,argv,i+1,"sort")) != 0)
+            char *type = argv[i+4];
+            char *str= calloc(8, sizeof(char));
+            strcat(str,"sort ");
+            strcat(str,type);
+            if((err = exec_operation(sort,argv,i+1,str)) != 0)
                 return err;
             i = i+5;
+            free(str);
         }
         else if(strcmp(operation,"copy") == 0){
             check_number_of_args(argc,i,6);
-            if((err = exec_operation(copy,argv,i+1,"copy")) != 0)
+            char *type = argv[i+5];
+            char *str= calloc(8, sizeof(char));
+            strcat(str,"copy ");
+            strcat(str,type);
+            if((err = exec_operation(copy,argv,i+1,str)) != 0)
                 return err;
             i = i+6;
+            free(str);
         }
         else{
             fprintf(stderr,"Unknown operation\n");

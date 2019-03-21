@@ -41,7 +41,6 @@ void getFileAttributes(const char* path, const struct stat *stat){
 }
 
 int compareDate(time_t file_modification_time, time_t date, const char *sign){
-    //printf("file: %ld\ndate: %ld\n",file_modification_time,date);
     if(strcmp(sign,"<") == 0){
         return (file_modification_time < date);
     }
@@ -72,7 +71,6 @@ void findStat(char* path){
     DIR *directory = opendir(path);
     struct dirent *file;
     struct stat stat;
-    //printf("elo\n");
 
     while( (file = readdir(directory))){
         if(strcmp(file->d_name, ".") == 0 || strcmp(file->d_name,"..") == 0)
@@ -116,7 +114,6 @@ int main(int argc, char** argv) {
     }
     global_comparison_sign = argv[2];
     global_date = getTime(argv[3]);
-    printf("%lld", global_date);
     char* type = argv[4];
     if(strcmp(type,"stat") == 0){
         findStat(path);
