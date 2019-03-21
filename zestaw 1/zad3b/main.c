@@ -94,7 +94,7 @@ int exec_operation(int (*operation)(char**,int), char** args, int i, const char*
     double user_time = get_time_difference(s.ru_utime, e.ru_utime);
     double sys_time = get_time_difference(s.ru_stime,e.ru_stime);
 
-    FILE * file = fopen("raport2.txt","a");
+    FILE * file = fopen("results3b.txt","a");
     fprintf(file,"Operation %s:\n real time: %f\n user time: %f\n system time: %f\n", operation_name, real_time, user_time, sys_time);
     fclose(file);
     return 0;

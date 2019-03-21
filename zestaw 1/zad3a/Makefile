@@ -3,10 +3,18 @@ CFLAGS = -Wall
 OFLAG = -O0
 export LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH
 
-all: static
+all: test
 
 test: 
-	./main create_table 10 search_directory /tmp .c c_result search_directory /tmp example result remove_block 0
+	@make clean
+	@make static
+	./main create_table 100 search_directory /usr main main_res search_directory /usr .c c_res remove_block 1 search_directory /usr .cpp cpp_res remove_block 2
+	@make clean
+	@make shared
+	./main create_table 100 search_directory /usr main main_res search_directory /usr .c c_res remove_block 1 search_directory /usr .cpp cpp_res remove_block 2
+	@make clean
+	@make dynamic
+	./main create_table 100 search_directory /usr main main_res search_directory /usr .c c_res remove_block 1 search_directory /usr .cpp cpp_res remove_block 2
 
 static: main.o library.o
 	$(CC) $(CFLAGS) $(OFLAG) -o main main.o library.o
