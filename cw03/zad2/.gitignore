@@ -1,3 +1,7 @@
 *.o
 main
 *.txt
+/archiwum
+files_list
+testfile
+testfile2

@@ -24,7 +24,7 @@ void observe_files(char* list, int lifetime, char* type){
     }
     char* record;
     size_t size = 0;
-    while (getline(&record,&size,file) != 1){
+    while (getline(&record,&size,file) != -1){
         char* file_name, *period;
         file_name = strtok(record, " ");
         period = strtok(NULL, " ");
@@ -58,7 +58,5 @@ int main(int argc, char** argv) {
         return 1;
     }
     observe_files(file, time, type);
-
-
     return 0;
 }

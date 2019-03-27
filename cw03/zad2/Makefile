@@ -4,6 +4,9 @@ CFLAGS = -Wall
 all: main
 
 
+test: main
+	./main files_list 30 memory
+
 main: main.o monitor.o
 	$(CC) $(CFLAGS) -o main main.o monitor.o
 
@@ -13,5 +16,11 @@ main.o: main.c
 monitor.o: monitor.c
 	$(CC) $(CFLAGS) -c monitor.c
 
+tester: tester.o
+	$(CC) $(CFLAGS) -o tester tester.o
+
+tester.o: tester.c
+	$(CC) $(CFLAGS) -c tester.c
+
 clean:
-	rm -f *.o main
+	rm -f *.o main tester
