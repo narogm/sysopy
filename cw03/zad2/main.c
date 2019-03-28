@@ -29,15 +29,16 @@ void observe_files(char* list, int lifetime, char* type){
         file_name = strtok(record, " ");
         period = strtok(NULL, " ");
         if(file_name == NULL || period == NULL){
-            fprintf(stderr, "File doesn't contain file name and time period in each line\n");
-            exit(1);
-        }
-        int i=0;
-        while(period[i++] != '\0'){
-            if(period[i] == '\n')
-                period[i] = '\0';
-        }
-        int converted_period = extract_int(period);
+			fprintf(stderr, "File doesn't contain file name and time period in each line\n");
+			exit(1);
+		}
+		int i=0;
+		while(period[i++] != '\0'){
+			if(period[i] == '\n') {
+				period[i] = '\0';
+			}
+		}
+		int converted_period = extract_int(period);
         observe(file_name,converted_period,lifetime,type);
 
     }

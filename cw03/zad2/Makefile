@@ -1,11 +1,12 @@
 CC = gcc
 CFLAGS = -Wall
 
-all: main
+all: main tester
 
 
-test: main
-	./main files_list 30 memory
+test: main tester
+	./main files_list 50 exec
+	./tester testfile 15 20 15
 
 main: main.o monitor.o
 	$(CC) $(CFLAGS) -o main main.o monitor.o

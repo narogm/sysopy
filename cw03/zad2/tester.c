@@ -31,7 +31,7 @@ char* get_random_record(int len){
 	for(int i = 0; i < len; i++){
 		result[i] = (char) (rand()%(122-97+1)+97);
 	}
-	result[len] = '\n';
+	result[len] = '\0';
 	return result;
 }
 
@@ -45,12 +45,12 @@ void modify_file(char** argv){
         exit(1);
     }
     while (1){
-		char new_line[bytes+128];
+		char new_line[1024];
 		pid_t pid = getpid();
 		int rand_time = rand()%(pmax-pmin+1)+pmin;
 		char *date = get_current_date();
 		char *random_record = get_random_record(bytes);
-		sprintf(new_line,"%i %i %s %s", pid,rand_time,date,random_record);
+		sprintf(new_line,"%i %i %s %s\n", pid,rand_time,date,random_record);
 		free(date);
 		free(random_record);
 		FILE* file;
