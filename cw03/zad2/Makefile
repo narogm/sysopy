@@ -4,10 +4,6 @@ CFLAGS = -Wall
 all: main tester
 
 
-test: main tester
-	./main files_list 50 exec
-	./tester testfile 15 20 15
-
 main: main.o monitor.o
 	$(CC) $(CFLAGS) -o main main.o monitor.o
 

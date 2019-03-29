@@ -5,25 +5,25 @@
 #include <string.h>
 
 int extract_int(char *str) {
-	char c;
-	int i=0;
-	while((c = str[i++]) != '\0'){
-		if(48 > c || c > 57){
-			fprintf(stderr, "Given argument is not an integer\n");
-			exit(1);
-		}
-	}
-	return atoi(str);
+    char c;
+    int i=0;
+    while((c = str[i++]) != '\0'){
+        if(48 > c || c > 57){
+            fprintf(stderr, "Given argument is not an integer\n");
+            exit(1);
+        }
+    }
+    return atoi(str);
 }
 
 char* get_current_date(){
-	char* date = malloc(sizeof(char) * 20);
-	struct tm *tmTime;
-	time_t t;
-	t = time(NULL);
-	tmTime = localtime(&t);
-	strftime(date, 20, "%Y-%m-%d_%H-%M-%S", tmTime);
-	return date;
+    char* date = malloc(sizeof(char) * 20);
+    struct tm *tmTime;
+    time_t t;
+    t = time(NULL);
+    tmTime = localtime(&t);
+    strftime(date, 20, "%Y-%m-%d_%H-%M-%S", tmTime);
+    return date;
 }
 
 char* get_random_record(int len){
@@ -36,15 +36,15 @@ char* get_random_record(int len){
 }
 
 void modify_file(char** argv){
-	char* file_name = argv[1];
-	int pmin = extract_int(argv[2]);
-	int pmax = extract_int(argv[3]);
-	int bytes = extract_int(argv[4]);
-	if(pmin > pmax){
-		fprintf(stderr, "pmin can not be greater than pmax\n");
-		exit(1);
-	}
-	while (1){
+    char* file_name = argv[1];
+    int pmin = extract_int(argv[2]);
+    int pmax = extract_int(argv[3]);
+    int bytes = extract_int(argv[4]);
+    if(pmin > pmax){
+        fprintf(stderr, "pmin can not be greater than pmax\n");
+        exit(1);
+    }
+    while (1){
 		char new_line[1024];
 		pid_t pid = getpid();
 		int rand_time = rand()%(pmax-pmin+1)+pmin;
@@ -66,9 +66,9 @@ void modify_file(char** argv){
 }
 
 int main(int argc, char** argv){
-	if(argc != 5){
-		fprintf(stderr, "Incorrect amount of arguments\n");
-		return 1;
-	}
-	modify_file(argv);
+    if(argc != 5){
+        fprintf(stderr, "Incorrect amount of arguments\n");
+        return 1;
+    }
+    modify_file(argv);
 }

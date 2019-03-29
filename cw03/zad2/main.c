@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <memory.h>
+#include <zconf.h>
+#include <wait.h>
 
 #include "monitor.h"
 
@@ -24,11 +26,12 @@ void observe_files(char* list, int lifetime, char* type){
     }
     char* record;
     size_t size = 0;
-    while (getline(&record,&size,file) != -1){
-        char* file_name, *period;
-        file_name = strtok(record, " ");
-        period = strtok(NULL, " ");
-        if(file_name == NULL || period == NULL){
+	int pid;
+	while (getline(&record,&size,file) != -1){
+		char* file_name, *period;
+		file_name = strtok(record, " ");
+		period = strtok(NULL, " ");
+		if(file_name == NULL || period == NULL){
 			fprintf(stderr, "File doesn't contain file name and time period in each line\n");
 			exit(1);
 		}
@@ -39,11 +42,16 @@ void observe_files(char* list, int lifetime, char* type){
 			}
 		}
 		int converted_period = extract_int(period);
-        observe(file_name,converted_period,lifetime,type);
-
+		if((pid = fork()) == 0){
+			observe(file_name,converted_period,lifetime,type);
+			pid = getpid();
+			exit(0);
+		}
     }
     free(record);
     fclose(file);
+    int status;
+    waitpid(pid,&status,0);
 }
 
 int main(int argc, char** argv) {
