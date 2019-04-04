@@ -25,7 +25,7 @@ int get_pid(char* str){
 	}
 	int pid = atoi(str);
 	if( kill(pid,0) != 0){
-		fprintf(stderr, "There is not process with given pid\n");
+		fprintf(stderr, "There is not any process with given pid\n");
 		exit(1);
 	}
 	return pid;

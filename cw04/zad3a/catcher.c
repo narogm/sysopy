@@ -13,8 +13,7 @@ void sigusr1_handler(int signal, siginfo_t *info, void *extra){
 	sender_pid = info->si_pid;
 }
 
-void sigusr2_handler(int signal){
-	printf("#####   CATCHER\n");
+void sigusr2_handler(){
 	printf("Received %i USR1 signals\n", sigusr1_counter);
 	if(sender_pid == -1){
 		fprintf(stderr, "Error with sender's pid\n");
@@ -54,7 +53,6 @@ int main(int argc, char** argv){
 
 	sigfillset (&act1.sa_mask);
 	sigdelset(&act1.sa_mask, SIGUSR1);
-	//sigdelset(&act1.sa_mask, SIGRTMIN);
 	act1.sa_flags = SA_SIGINFO;
 	act1.sa_handler = (__sighandler_t) sigusr1_handler;
 	sigaction(SIGUSR1, &act1, NULL);
@@ -62,7 +60,6 @@ int main(int argc, char** argv){
 
 	sigfillset (&act2.sa_mask);
 	sigdelset(&act2.sa_mask, SIGUSR2);
-//	sigdelset(&act2.sa_mask, SIGRTMIN+1);
 	act2.sa_flags = 0;
 	act2.sa_handler = sigusr2_handler;
 	sigaction(SIGUSR2, &act2, NULL);
