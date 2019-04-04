@@ -33,8 +33,6 @@ void sigusr2_handler(int signal){
 	}
 	send_signal_by_type(sender_pid, global_type, SIGUSR1);
 	sigusr2_received = 1;
-//	exit(0);
-
 }
 
 int main(int argc, char** argv){

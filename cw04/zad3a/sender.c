@@ -40,6 +40,7 @@ int main(int argc, char** argv) {
 	act2.sa_handler = sigusr2_handler;
 	sigaction(SIGUSR2, &act2, NULL);
 	sigaction(SIGRTMIN + 1, &act2, NULL);
+	printf("Sending %i USR1 signals\n",amount);
 	send_signals_by_type(pid,global_type,amount);
 	while(1){
 
