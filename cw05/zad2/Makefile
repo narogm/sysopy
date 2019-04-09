@@ -17,4 +17,4 @@ slave.o: slave.c
 	$(CC) $(CFLAGS) -c slave.c
 
 clean:
-	rm -f *.o master
+	rm -f *.o master slave
