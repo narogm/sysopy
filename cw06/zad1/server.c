@@ -7,6 +7,8 @@
 #include <signal.h>
 #include "common.h"
 
+int clients_count = 0;
+
 void execute_echo(){
 
 }
@@ -48,13 +50,23 @@ void signal_handler(){
 }
 
 int main(){
-	if(make_queue()){
-		//wypisanie bledu jesli nie udalo sie stworzyc kolejki
-	}
+//	if(make_queue()){
+//	}
 
+    key_t key = ftok("server", 0);
+    int msgid = msgget(key, 0666|IPC_CREAT);
 	signal(SIGINT, signal_handler);
-	while(1){
-		struct msg message;
+    struct msg message;
+    msgrcv(msgid, &message, sizeof(message), 7, 0);
+    printf("Receiveed:\n%s\n", message.msg_data);
 
-	}
+    client_key = atoi(message.msg_data);
+
+    client_queue = msgget(client_key, 0);
+    sprintf(message.msg_data, "%i", ++clients_count);
+    msgnsd(client_key, &message, sizeof(message), 0);
+
+//    while(1){
+//
+//	}
 }

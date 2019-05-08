@@ -23,12 +23,8 @@ enum msg_types{
 	TO_ALL = 4,
 	TO_FRIENDS = 5,
 	TO_ONE = 6,
-	ECHO = 7
+	ECHO = 7,
+	INIT = 8
 };
-
-int make_queue(char * name){
-	key_t key = ftok(name, );
-	return
-}
 
 #endif //ZAD1_COMMON_H
