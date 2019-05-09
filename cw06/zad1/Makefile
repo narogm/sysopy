@@ -3,15 +3,11 @@ CFLAGS = -Wall
 
 all: server client
 
-server_test: server.o
-
 server: server.o
 	$(CC) $(CFLAGS) -o server server.o
 
 server.o: server.c
 	$(CC) $(CFLAGS) -c server.c
-
-client_test: client.o
 
 client: client.o
 	$(CC) $(CFLAGS) -o client client.o
