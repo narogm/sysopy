@@ -11,7 +11,7 @@
 #define MSG_SIZE  100
 #define MAX_CLIENTS_AMOUNT 10
 
-typedef struct msg{
+struct msg{
 	long msg_type;
 	char msg_data[MSG_SIZE];
 	int client_id;

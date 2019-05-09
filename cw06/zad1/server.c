@@ -32,18 +32,13 @@ char* get_curr_date(){
 
 int* parse_list(char* list){
 	char *buff = strdup(list);
-//	printf("|%s|\n", buff);
 	int * result = malloc(sizeof(int) * MAX_CLIENTS_AMOUNT);
 	char *tmp;
 	tmp = strtok(buff, " ");
 	int index = 0;
-//	printf("Parsing list from %s\n", list);
 	while(tmp != NULL){
-//		printf("index %i\n", index);
 		result[index++] = atoi(tmp);
 		tmp = strtok(NULL, " ");
-//		printf("|%s|\n", tmp);
-//		printf("test\n");
 	}
 	if(index < MAX_CLIENTS_AMOUNT) {
 		result[index] = -1;
@@ -86,11 +81,8 @@ void friend(struct msg message){
 	char* list = strdup(message.msg_data);
 	int* new_friends = parse_list(list);
 	int i = 0;
-	printf("elo xDDD\n");
 	while((i < MAX_CLIENTS_AMOUNT) && (new_friends[i] != -1)){
-		printf("elo\n");
 		if(!clients[new_friends[i]].closed){
-			printf("no siema\n");
 			clients[new_friends[i]].is_friend = 1;
 		}
 		i++;
@@ -143,7 +135,6 @@ void proceed_msg(struct msg message){
 
 	switch (message.msg_type){
 		case STOP:
-			printf("konczenie clienta\n");
 			clients[atoi(message.msg_data)].closed = 1;
 			break;
 		case LIST:
@@ -173,17 +164,16 @@ void proceed_msg(struct msg message){
 }
 
 void signal_handler(){
+	printf("Received SIGINT signal\n");
 	struct msg message;
 	for(int i=0; i<MAX_CLIENTS_AMOUNT; i++){
 		if(!clients[i].closed){
-			printf("elo %i\n",i);
 			clients[i].closed = 1;
 			send_msg(clients[i].queue_id, "", STOP_CLIENT, -1);
 			kill(clients[i].client_pid, SIGUSR1);
 			msgrcv(server_queue_key, &message, sizeof(message), STOP, 0);
 		}
 	}
-	printf("obsluga sygnalu\n");
 	msgctl(server_queue_key, IPC_RMID, NULL);
 	exit(0);
 }
@@ -195,7 +185,6 @@ int main(){
 
     key_t key = ftok("server", 0);
     server_queue_key = msgget(key, 0666|IPC_CREAT);
-    printf("server -> %d\n",server_queue_key);
 
     signal(SIGINT, signal_handler);
 
@@ -203,7 +192,7 @@ int main(){
 
     while(1){
     	msgrcv(server_queue_key, &message, sizeof(message), -8, 0);
-    	printf("otrzymanie komunikatu\n");
+//    	printf("otrzymanie komunikatu\n");
     	proceed_msg(message);
 	}
 }

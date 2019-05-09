@@ -16,7 +16,6 @@ int server_id = -1;
 
 void initialize(){
     key_t key = ftok("client", getpid());
-    printf("client key %i\n", key);
     client_queue = msgget(key, 0666|IPC_CREAT);
 
     key_t server_key = ftok("server", 0);
@@ -28,7 +27,6 @@ void initialize(){
 //    message.to_client = -1;
     sprintf(message.msg_data, "%i", key);
 
-    printf("wyslanie wiadomosci  -> %d\n",server_id);
     msgsnd(server_id, &message, sizeof(message), 0);
 
 	msgrcv(client_queue, &message, sizeof(message), 0, 0);
@@ -40,7 +38,6 @@ void stop(){
 	printf("closing client");
 	char content[MSG_SIZE];
 	sprintf(content, "%i", client_id);
-	printf("client id %i\n",client_id);
 	send_msg(server_id, content, STOP, client_id);
 	msgctl(client_queue, IPC_RMID, NULL);
 	exit(0);
@@ -50,7 +47,7 @@ void list(){
 	send_msg(server_id, "", LIST, client_id);
 	struct msg message;
 	msgrcv(client_queue, &message, sizeof(message), MSG_CLIENT, 0);
-	printf("Response from server: %s\n", message.msg_data);
+	printf("Received from server: %s\n", message.msg_data);
 }
 
 void friends(char* list){
@@ -82,7 +79,7 @@ void echo(char* content){
 	send_msg(server_id, content, ECHO, client_id);
 	struct msg message;
 	msgrcv(client_queue, &message, sizeof(message), MSG_CLIENT, 0);
-	printf("Response from server: %s\n", message.msg_data);
+	printf("Received from server: %s\n", message.msg_data);
 }
 
 void signal_handler(){
@@ -96,8 +93,8 @@ void sigusr_handler(){
 		stop();
 	}
 	else{
-		//TODO
-		printf("przyszla wiadomosc\n");
+		printf("Received message from server: %s\n", message.msg_data);
+
 	}
 }
 
@@ -106,7 +103,7 @@ int is_integer_list(char* line){
 	char c;
 	while((c = line[i++]) != '\0'){
 		if((c>57 || 48>c) && c != 32 && c != '\n'){	// && c != '\n'
-			sprintf(stderr, "Invalid integer list\n");
+			fprintf(stderr, "Invalid integer list\n");
 			printf("error |%c|\n", c);
 			return 0;
 		}
@@ -118,15 +115,11 @@ int main(){
 	initialize();
 	signal(SIGINT, signal_handler);
 	signal(SIGUSR1, sigusr_handler);
-	struct msg message;
-	printf("pid : %i\n", getpid());
-
 
 	size_t tmp_size;
 	char* line = malloc(sizeof(char) * MSG_SIZE);
 	char command[MSG_SIZE];
 	while(1){
-		printf("podaj zlecenie\n");
 		scanf("%s",command);
 		if(strcmp(command, "STOP") == 0){
 			stop();
@@ -136,9 +129,7 @@ int main(){
 			list();
 		}
 		else if(strcmp(command, "FRIENDS") == 0){
-			int size = getline(&line, &tmp_size, stdin);
-//			line[size-1] = ' ';
-			printf("wczytano: |%s|\n", line);
+			getline(&line, &tmp_size, stdin);
 			if(is_integer_list(line))
 				friends(line);
 		}
