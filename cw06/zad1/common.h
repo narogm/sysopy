@@ -8,12 +8,14 @@
 
 #include <sys/msg.h>
 
-#define MSG_SIZE  20
-#define MAX_CLIENTS_AMOUNT 5
+#define MSG_SIZE  100
+#define MAX_CLIENTS_AMOUNT 10
 
 typedef struct msg{
 	long msg_type;
 	char msg_data[MSG_SIZE];
+	int client_id;
+//	int to_client;
 };
 
 enum to_server_types{
@@ -34,9 +36,10 @@ enum to_client_types{
 };
 
 
-void send_msg(int queue, char* content, int type){
+void send_msg(int queue, char* content, int type, int client_id){
 	struct msg message;
 	message.msg_type = type;
+	message.client_id = client_id;
 	sprintf(message.msg_data, "%s", content);
 	msgsnd(queue, &message, sizeof(message), 0);
 }
