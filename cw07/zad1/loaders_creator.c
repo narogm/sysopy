@@ -16,7 +16,7 @@ void generate(){
 	while(i<A){
 		if(fork() == 0){
 			char n_to_str[10];
-			sprintf(n_to_str, "%i", N);
+			sprintf(n_to_str, "%i", rand()%N+1);
 			if(C == -1){
 				execl("./loader", "./loader", n_to_str, NULL);
 				//should not reach this
@@ -46,9 +46,8 @@ int main(int argc, char** argv){
 	if(argc == 4){
 		C = extract_int(argv[3]);
 	}
-	printf("elo\n");
-
-	srand(time(0));
+	time_t tt;
+	srand(time(&tt));
 	generate();
 	while (A --){
 		wait(NULL);

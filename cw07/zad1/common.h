@@ -9,12 +9,12 @@
 #define MAX_SIZE 512
 
 struct box{
-	int w;
-	int id;
+	int weight;
+	int loader_id;
 };
 
 struct line{
-	int w, n;
+	int weight, amount;
 	struct box boxes[MAX_SIZE];
 };
 

@@ -30,7 +30,7 @@ void initialize() {
 	}
 
 	key = ftok("key_sem", 63);
-	if ((sem_id = semget(key, 4, 0666)) < 0) {
+	if ((sem_id = semget(key, 3, 0666)) < 0) {
 		semctl(sem_id, IPC_RMID, 0);
 		fprintf(stderr, "Error while getting semaphores\n");
 		exit(1);
@@ -38,41 +38,38 @@ void initialize() {
 }
 
 void load_packs() {
-	int c = C;
-	struct sembuf semops[2];
-	semops[0].sem_num = 0;
-	semops[0].sem_op = -1;
-	semops[0].sem_flg = 0;
-	semops[1].sem_num = 1;
-	semops[1].sem_op = -N;
-	semops[1].sem_flg = 0;
-	struct sembuf shmsem[2];
-	shmsem[0].sem_num = 2;
-	shmsem[0].sem_op = -1;
-	shmsem[0].sem_flg = 0;
-	shmsem[1].sem_num = 3;
-	shmsem[1].sem_op = 1;
-	shmsem[1].sem_flg = 0;
-	while (c--) {
-		printf("%ld: Waiting for loading pack by %d\n", get_time_in_ms(), getpid());
-		if (semop(sem_id, semops, 2) == -1) {
-			fprintf(stderr, "Unable to perform action on semaphores\n");
+	struct sembuf shm_line[1];
+	shm_line[0].sem_num = 2;
+	shm_line[0].sem_op = -1;
+	shm_line[0].sem_flg = 0;
+
+	struct sembuf sem_access[2];
+	sem_access[0].sem_num = 0;
+	sem_access[0].sem_op = -1;
+	sem_access[0].sem_flg = 0;
+	sem_access[1].sem_num = 1;
+	sem_access[1].sem_op = -N;
+	sem_access[1].sem_flg = 0;
+
+	while (C--) {
+		if (semop(sem_id, sem_access, 2) == -1) {
+			fprintf(stderr, "Error with semaphores\n");
 		}
-		shmsem[0].sem_op = -1;
-		if (semop(sem_id, shmsem, 2) == -1) {
-			fprintf(stderr, "Unable to access shared memory\n");
+		shm_line[0].sem_op = -1;
+		if (semop(sem_id, shm_line, 1) == -1) {
+			fprintf(stderr, "Error with shared memory\n");
 		}
 		struct box b;
-		b.w = N;
-		b.id = getpid();
-		printf("%i\n", L->n);
-		L->boxes[L->n++] = b;
-		L->w += N;
-		printf("%ld: %d loaded pack %d with weight %d\n", get_time_in_ms(), getpid(), L->n - 1, N);
-		printf("%ld: Line state - packs' amount: %d, packs' weight: %d\n", get_time_in_ms(), L->n, L->w);
-		shmsem[0].sem_op = 1;
-		if (semop(sem_id, shmsem, 1) == -1) {
-			fprintf(stderr, "Unable to release shared memory\n");
+		b.loader_id = getpid();
+		b.weight = N;
+		L->boxes[L->amount++] = b;
+		L->weight += N;
+		printf("%ld: %d loaded pack with weight %d\n", get_time_in_ms(), getpid(), N);
+		printf("%ld: Line state - packs' amount: %d, packs' weight: %d\n", get_time_in_ms(), L->amount, L->weight);
+
+		shm_line[0].sem_op = 1;
+		if (semop(sem_id, shm_line, 1) == -1) {
+			fprintf(stderr, "Error with shared memory\n");
 		}
 	}
 }
