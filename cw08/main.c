@@ -6,7 +6,7 @@
 #include <math.h>
 
 typedef struct image{
-	unsigned char** pixels;
+	int ** pixels;
 	int w, h, m;
 }image;
 
@@ -50,17 +50,17 @@ image* read_img(char* file_name){
 		exit(1);
 	}
 	image* result = malloc(sizeof(image));
-	fscanf(file, "%i", &result->w);
-	fscanf(file, "%i", &result->h);
-	fscanf(file, "%i", &result->m);
+	fscanf(file, "%d", &result->w);
+	fscanf(file, "%d", &result->h);
+	fscanf(file, "%d", &result->m);
 
-	result->pixels = malloc(sizeof(char*) * result->h);
+	result->pixels = malloc(sizeof(int*) * result->h);
 	for(int i=0; i<result->h; i++){
-		result->pixels[i] = malloc(sizeof(char) * result->w);
+		result->pixels[i] = malloc(sizeof(int) * result->w);
 		for(int j=0; j<result->w; j++){
 			int val;
-			fscanf(file, "%i", &val);
-			result->pixels[i][j] = (unsigned char) val;
+			fscanf(file, "%d", &val);
+			result->pixels[i][j] = val;
 		}
 	}
 	fclose(file);
@@ -106,9 +106,9 @@ void proceed(int x, int y){
 	output->pixels[x][y] = round(sum);
 }
 
-void* apply_filter(int id){
+void *apply_filter(void *id){
 	long long start_time = get_time();
-	int k = id;
+	int k = *((int*) id);
 	int m = amount;
 	if(type == 0){
 		for(int j = (k-1)*input->w/m; j<k*input->w/m; j++){
@@ -131,10 +131,10 @@ void save_to_file(char* file_name){
 		fprintf(stderr, "Unable to open file to save result\n");
 		exit(1);
 	}
-	fprintf(file, "P2\n%i %i\n%i\n", output->w, output->h, output->m);
+	fprintf(file, "P2\n%d %d\n%d\n", output->w, output->h, output->m);
 	for(int i=0; i<output->h; i++){
 		for(int j=0; j<output->w; j++){
-			fprintf(file, "%i ", output->pixels[i][j]);
+			fprintf(file, "%d ", output->pixels[i][j]);
 		}
 		fprintf(file, "\n");
 	}
@@ -147,7 +147,6 @@ int main(int argc, char** argv) {
 		exit(1);
 	}
 	amount = extract_int(argv[1]);
-	printf("amount: %i\n", amount);
 	char* in_file = argv[3];
 	char* filter_file = argv[4];
 	char* out_file = argv[5];
@@ -180,7 +179,7 @@ int main(int argc, char** argv) {
 	int threads_id[amount];
 	for(int i=0; i<amount; i++){
 		threads_id[i] = i+1;
-		pthread_create(&threads[i], NULL, apply_filter, threads_id[i]);
+		pthread_create(&threads[i], NULL, (void *(*)(void *)) apply_filter, (void *) &threads_id[i]);
 	}
 
 	for(int i=0; i<amount; i++){
@@ -204,7 +203,7 @@ int main(int argc, char** argv) {
 //	for(int i=0; i<fil->c; i++){
 //		free(fil->pixels[i]);
 //	}
-//	free(fil->pixels);
-//	free(fil);
+	free(fil->pixels);
+	free(fil);
 	return 0;
 }
