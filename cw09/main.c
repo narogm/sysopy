@@ -5,7 +5,7 @@
 #include <zconf.h>
 
 typedef struct {
-	int id, runs_left, on_run;
+	int id, runs_left;
 } carriage;
 
 typedef struct {
@@ -20,10 +20,6 @@ int next_carriage = 1;
 pthread_mutex_t mt_load_carriage = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t cond_load_carriage = PTHREAD_COND_INITIALIZER;
 
-int carriage_to_unload = 1;
-pthread_mutex_t mt_unload_carriage = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t cond_unload_carriage = PTHREAD_COND_INITIALIZER;
-
 int can_load = 0;
 pthread_mutex_t mt_load_passenger = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t cond_load_passenger = PTHREAD_COND_INITIALIZER;
@@ -35,6 +31,9 @@ pthread_cond_t cond_unload_passenger = PTHREAD_COND_INITIALIZER;
 int can_start = 0;
 pthread_mutex_t mt_start = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t cond_start = PTHREAD_COND_INITIALIZER;
+
+pthread_mutex_t mt_empty = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t cond_empty = PTHREAD_COND_INITIALIZER;
 
 int extract_int(char *str) {
 	char c;
@@ -55,54 +54,50 @@ long long get_time() {
 }
 
 void *carriage_fun(void *arg) {
-	carriage params = *((carriage*) arg);
+	carriage params = *((carriage *) arg);
 	while (params.runs_left > 0) {
 		//ladowanie wagonika
-		if (!params.on_run) {
-			pthread_mutex_lock(&mt_load_carriage);
-			while (params.id != next_carriage) {
-				pthread_cond_wait(&cond_load_carriage, &mt_load_carriage);
-			}
+		pthread_mutex_lock(&mt_load_carriage);
+		while (params.id != next_carriage) {
+			pthread_cond_wait(&cond_load_carriage, &mt_load_carriage);
+		}
 
-			printf("%lld: Carriage %d is ready to be loaded\n", get_time(), params.id);
-			can_load = 1;
-			while (curr_passengers_amount_in_carriage[params.id - 1] < capacity) {
-				pthread_cond_signal(&cond_load_passenger);
-			}
-			pthread_mutex_lock(&mt_start);
-			if(!can_start)
-				pthread_cond_wait(&cond_start, &mt_start);
+		printf("%lld: Carriage %d is ready to be loaded\n", get_time(), params.id);
+		can_load = 1;
+		while (curr_passengers_amount_in_carriage[params.id - 1] < capacity) {
+			pthread_cond_signal(&cond_load_passenger);
+		}
+		pthread_mutex_lock(&mt_start);
+		if (!can_start)
+			pthread_cond_wait(&cond_start, &mt_start);
+		pthread_mutex_unlock(&mt_start);
+		printf("%lld Carriage %d leave on run %d/%d\n", get_time(), params.id, n - params.runs_left + 1, n);
+		next_carriage = next_carriage % carriages_amount + 1;
+		can_start = 0;
+		pthread_mutex_unlock(&mt_load_carriage);
+		pthread_cond_broadcast(&cond_load_carriage);
 
-			pthread_mutex_unlock(&mt_start);
-			params.on_run = 1;
-			printf("%lld Carriage %d leave on run %d/%d\n", get_time(), params.id, n - params.runs_left + 1, n);
+		//wysiadanie z wagonika
+		pthread_mutex_lock(&mt_load_carriage);
+		while (params.id != next_carriage) {
+			pthread_cond_wait(&cond_load_carriage, &mt_load_carriage);
+		}
+		params.runs_left--;
+		printf("%lld Carriage %d finished run %d/%d\n", get_time(), params.id, n - params.runs_left, n);
+		can_unload = 1;
+		while (curr_passengers_amount_in_carriage[params.id - 1] > 0) {
+			pthread_cond_signal(&cond_unload_passenger);
+		}
+		if (can_unload) {
+			pthread_cond_wait(&cond_empty, &mt_empty);
+		}
+		printf("%lld Carriage %d is empty\n", get_time(), params.id);
+		pthread_mutex_unlock(&mt_load_carriage);
+		if (params.runs_left == 0) {
 			next_carriage = next_carriage % carriages_amount + 1;
-			can_start = 0;
-			pthread_mutex_unlock(&mt_load_carriage);
 			pthread_cond_broadcast(&cond_load_carriage);
-			usleep(5000);
-		}//wysiadanie z wagonika
-		else {
-			pthread_mutex_lock(&mt_unload_carriage);
-			while (params.id != carriage_to_unload) {
-				pthread_cond_wait(&cond_unload_carriage, &mt_unload_carriage);
-			}
-			params.runs_left--;
-			params.on_run = 0;
-			printf("%lld Carriage %d finished run %d/%d\n", get_time(), params.id, n-params.runs_left, n);
-			can_unload = 1;
-			while (curr_passengers_amount_in_carriage[params.id - 1] > 0) {
-				pthread_cond_signal(&cond_unload_passenger);
-			}
-			can_unload = 0;
-			carriage_to_unload = carriage_to_unload % carriages_amount + 1;
-			printf("%lld Carriage %d is empty\n", get_time(), params.id);
-			pthread_mutex_unlock(&mt_unload_carriage);
-			pthread_cond_broadcast(&cond_unload_carriage);
-
 		}
 	}
-
 	printf("%lld Carriage %d finished all runs\n", get_time(), params.id);
 	pthread_exit(NULL);
 }
@@ -116,7 +111,8 @@ void *passenger_fun(void *arg) {
 		}
 		int carriage_id = next_carriage;
 		curr_passengers_amount_in_carriage[next_carriage - 1]++;
-		printf("%lld Passenger %d entered carriage %d as %d/%d\n", get_time(), params.id, next_carriage, curr_passengers_amount_in_carriage[next_carriage-1], capacity);
+		printf("%lld Passenger %d entered carriage %d as %d/%d\n", get_time(), params.id, next_carriage,
+			   curr_passengers_amount_in_carriage[next_carriage - 1], capacity);
 		if (curr_passengers_amount_in_carriage[next_carriage - 1] == capacity) {
 			printf("%lld Passenger %d pressed START button\n", get_time(), params.id);
 			can_load = 0;
@@ -125,13 +121,17 @@ void *passenger_fun(void *arg) {
 		}
 		pthread_mutex_unlock(&mt_load_passenger);
 		pthread_mutex_lock(&mt_unload_passenger);
-		while (carriage_id != carriage_to_unload || !can_unload) {
+		while (carriage_id != next_carriage || !can_unload) {
 			pthread_cond_wait(&cond_unload_passenger, &mt_unload_passenger);
 		}
+		printf("%lld Passenger %d left carriage %d ### passengers left: %d/%d\n", get_time(), params.id, carriage_id,
+			   curr_passengers_amount_in_carriage[carriage_id - 1], capacity);
 		curr_passengers_amount_in_carriage[carriage_id - 1]--;
-		printf("%lld Passenger %d left carriage %d ### passengers left: %d/%d\n", get_time(), params.id, carriage_id, curr_passengers_amount_in_carriage[carriage_id-1], capacity);
+		if (curr_passengers_amount_in_carriage[carriage_id - 1] == 0) {
+			can_unload = 0;
+			pthread_cond_signal(&cond_empty);
+		}
 		pthread_mutex_unlock(&mt_unload_passenger);
-
 	}
 }
 
@@ -144,7 +144,7 @@ int main(int argc, char **argv) {
 	carriages_amount = extract_int(argv[2]);
 	capacity = extract_int(argv[3]);
 	n = extract_int(argv[4]);
-	if(passengers_amount < capacity){
+	if (passengers_amount < capacity) {
 		fprintf(stderr, "Passengers amount should be greater than carriage capacity\n");
 		exit(1);
 	}
@@ -159,7 +159,6 @@ int main(int argc, char **argv) {
 	for (int i = 0; i < carriages_amount; i++) {
 		carriages_params[i].id = i + 1;
 		carriages_params[i].runs_left = n;
-		carriages_params[i].on_run = 0;
 		pthread_create(&thr_carriages[i], NULL, carriage_fun, &carriages_params[i]);
 
 	}
